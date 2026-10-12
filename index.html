@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weekly Planner</title>
+<style>
+:root{--burg:#7F1F3B;--burg-dark:#5E1429;--burg-mid:#A8476A;--burg-soft:#D9A9BA;--burg-tint:#F4E6EB;--bg:#FAF9F6;--card:#fff;--line:#E4E4E4;--line2:#EFEFEF;--muted:#666;--ink:#222;--r:14px;--sh:0 1px 3px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.05)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1400px;margin:0 auto;padding:24px 20px 56px}
+h1,h2,h3,p{margin:0}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--burg-mid);outline-offset:2px}
+[hidden]{display:none!important}
+.auth{max-width:420px;margin:8vh auto 0}.auth form{display:grid;gap:12px;margin-top:16px}.auth h1{color:var(--burg)}#aMsg{font-size:.9rem;min-height:1.3em}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.btn{border:1px solid var(--line);background:var(--card);padding:9px 16px;border-radius:10px;cursor:pointer;font-weight:600;font-size:.92rem}
+.btn:hover{background:var(--burg-tint);border-color:var(--burg-soft)}
+.btn.primary{background:var(--burg);border-color:var(--burg);color:#fff}
+.btn.primary:hover{background:var(--burg-dark)}
+.btn.small{padding:5px 10px;font-size:.82rem;border-radius:8px}
+.btn.danger:hover{background:#fff;border-color:var(--burg);color:var(--burg)}
+header.top{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-end;margin-bottom:24px}
+header.top h1{font-size:clamp(1.6rem,4vw,2.2rem);color:var(--burg);letter-spacing:-.01em}
+.welcome{font-size:1.1rem;font-weight:600;margin-top:4px}
+.sub{color:var(--muted);font-size:.95rem}
+.hdr-actions{display:flex;gap:8px;flex-wrap:wrap}
+.dash{display:grid;gap:16px;grid-template-columns:1fr;margin-bottom:24px}
+@media(min-width:900px){.dash{grid-template-columns:1.4fr 1fr}}
+.card{background:var(--card);border:1px solid var(--line2);border-radius:var(--r);box-shadow:var(--sh);padding:20px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+.stat{background:var(--bg);border-radius:12px;padding:12px 14px;border:1px solid var(--line2)}
+.stat b{display:block;font-size:1.7rem;color:var(--burg);line-height:1.2}
+.stat span{font-size:.82rem;color:var(--muted)}
+.bar{height:10px;background:var(--line2);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--burg);border-radius:99px;transition:width .3s}
+.pline{display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:6px;font-weight:600}
+.msg{color:var(--muted);margin-top:12px;font-size:.93rem}
+.card h2{font-size:1.1rem}
+.focus-list{display:grid;gap:8px;margin-top:12px}
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+.weeknav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.weeklabel{font-weight:700;min-width:170px;text-align:center}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.filters label{display:grid;font-size:.78rem;color:var(--muted);font-weight:600;gap:2px}
+select,input[type=text],input[type=date],input[type=time],textarea{border:1px solid #cfcfcf;background:#fff;border-radius:9px;padding:8px 10px;width:100%}
+.filters select{width:auto;min-width:130px}
+.board{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:640px){.board{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:960px){.board{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:1320px){.board{grid-template-columns:repeat(7,1fr)}}
+.day{background:#F3F3F3;border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.day.today{background:#fff;border:2px solid var(--burg);box-shadow:var(--sh)}
+.day-h{display:flex;justify-content:space-between;align-items:center}
+.day-h h3{font-size:1.02rem}.day-h p{font-size:.84rem;color:var(--muted)}
+.today-tag{background:var(--burg);color:#fff;font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:99px;letter-spacing:.03em}
+.list{display:grid;gap:8px;flex:1;align-content:start}
+.empty{color:var(--muted);font-size:.86rem;text-align:center;padding:14px 6px;border:1px dashed #cfcfcf;border-radius:10px}
+.add{border:1px dashed var(--burg-soft);background:transparent;color:var(--burg);border-radius:10px;padding:8px;cursor:pointer;font-weight:600}
+.add:hover{background:var(--burg-tint)}
+.task{background:#fff;border:1px solid var(--line);border-left-width:6px;border-radius:12px;padding:10px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.task.High{border-left:7px solid var(--burg-dark)}
+.task.Medium{border-left:5px solid var(--burg-mid)}
+.task.Low{border-left:4px dashed var(--burg-soft)}
+.t-top{display:flex;gap:10px;align-items:flex-start}
+.t-top input[type=checkbox]{width:20px;height:20px;margin-top:2px;accent-color:var(--burg);flex:none;cursor:pointer}
+.t-title{font-weight:600;overflow-wrap:anywhere}
+.t-notes{font-size:.85rem;color:var(--muted);margin-top:2px;overflow-wrap:anywhere;white-space:pre-wrap}
+.task.done .t-title,.task.done .t-notes{text-decoration:line-through;color:#8a8a8a}
+.task.done{opacity:.8}
+.meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.badge,.chip{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:99px;border:1px solid}
+.badge.High{background:var(--burg-dark);color:#fff;border-color:var(--burg-dark)}
+.badge.Medium{background:var(--burg-tint);color:var(--burg);border-color:var(--burg-mid)}
+.badge.Low{background:#fff;color:#7a4a5a;border:1px dashed var(--burg-soft)}
+.chip{background:#f2f2f2;color:#444;border-color:#e0e0e0;font-weight:600}
+.chip.sample{background:#fff;border-style:dashed;color:var(--burg)}
+.t-act{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+.t-act select{width:auto;padding:4px 6px;font-size:.8rem;border-radius:8px}
+dialog{border:none;border-radius:16px;padding:0;width:min(520px,94vw);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(30,10,18,.45)}
+dialog form,dialog .dbody{padding:22px;display:grid;gap:12px}
+dialog h2{color:var(--burg)}
+.field{display:grid;gap:4px;font-weight:600;font-size:.88rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dactions{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+.catrow{display:flex;gap:8px}
+footer{margin-top:32px;text-align:center;color:var(--muted);font-size:.85rem}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<div class="wrap" id="authView" hidden>
+  <div class="card auth">
+    <h1>Weekly Planner</h1>
+    <p class="sub">Sign in to open your private planner, or create an account.</p>
+    <form id="authForm">
+      <label class="field" for="aEmail">Email<input type="text" id="aEmail" inputmode="email" autocomplete="email" required></label>
+      <label class="field" for="aPass">Password (at least 6 characters)<input type="password" id="aPass" minlength="6" autocomplete="current-password" required></label>
+      <p id="aMsg" role="alert"></p>
+      <button type="submit" class="btn primary" id="aSubmit">Sign in</button>
+      <button type="button" class="btn" id="aToggle">Create a new account</button>
+    </form>
+  </div>
+</div>
+<div class="wrap" id="app" hidden>
+  <header class="top">
+    <div>
+      <h1 id="appTitle">Weekly Planner</h1>
+      <p class="welcome" id="welcome"></p>
+      <p class="sub" id="occLine" hidden></p>
+      <p class="sub" id="todayLine"></p>
+    </div>
+    <div class="hdr-actions">
+      <button class="btn" id="editProfile" type="button">Profile</button>
+      <button class="btn" id="signOut" type="button">Sign out</button>
+      <button class="btn" id="manageCats" type="button">Edit categories</button>
+      <button class="btn primary" id="newTask" type="button">+ New task</button>
+    </div>
+  </header>
+
+  <section class="dash" aria-label="Dashboard">
+    <div class="card">
+      <h2>This week at a glance</h2>
+      <div class="stats">
+        <div class="stat"><b id="sTotal">0</b><span>Total tasks</span></div>
+        <div class="stat"><b id="sDone">0</b><span>Completed</span></div>
+        <div class="stat"><b id="sLeft">0</b><span>Remaining</span></div>
+      </div>
+      <div class="pline"><span>Weekly progress</span><span id="pPct">0%</span></div>
+      <div class="bar" role="progressbar" aria-label="Weekly progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="pBar"><i id="pFill" style="width:0"></i></div>
+      <p class="msg" id="encourage"></p>
+    </div>
+    <div class="card">
+      <h2>Today's Focus</h2>
+      <div class="focus-list" id="focus"></div>
+    </div>
+  </section>
+
+  <section class="toolbar" aria-label="Week navigation and filters">
+    <div class="weeknav">
+      <button class="btn" id="prevW" type="button" aria-label="Previous week">&larr; Prev</button>
+      <span class="weeklabel" id="weekLabel" aria-live="polite"></span>
+      <button class="btn" id="nextW" type="button" aria-label="Next week">Next &rarr;</button>
+      <button class="btn" id="thisW" type="button">This week</button>
+    </div>
+    <div class="filters">
+      <label>Category<select id="fCat"></select></label>
+      <label>Priority<select id="fPri"><option value="all">All priorities</option><option>High</option><option>Medium</option><option>Low</option></select></label>
+      <label>Status<select id="fStat"><option value="all">All tasks</option><option value="open">Not completed</option><option value="done">Completed</option></select></label>
+      <button class="btn" id="resetF" type="button">Reset filters</button>
+    </div>
+  </section>
+
+  <main class="board" id="board"></main>
+  <footer><span id="status" role="status">Loading your planner…</span></footer>
+</div>
+
+<dialog id="profDlg" aria-labelledby="pdTitle">
+  <form id="profForm">
+    <h2 id="pdTitle">Set up your planner</h2>
+    <p class="sub">Your planner is private to your account and available on all your devices.</p>
+    <label class="field" for="pTitle">Title
+      <select id="pTitle" required><option value="" disabled selected>Choose a title…</option><option value="Eng.">Eng.</option><option value="Dr.">Dr.</option><option value="Prof.">Prof.</option><option value="Mr.">Mr.</option><option value="Ms.">Ms.</option><option value="Mrs.">Mrs.</option><option value="Mx.">Mx.</option><option value="__none">No title</option><option value="__other">Other…</option></select>
+    </label>
+    <label class="field" id="pCustomWrap" for="pCustom" hidden>Your title<input type="text" id="pCustom" maxlength="20" placeholder="e.g. Architect"></label>
+    <label class="field" for="pName">Name<input type="text" id="pName" required maxlength="40" placeholder="Your name"></label>
+    <label class="field" for="pOcc">Occupation or field (optional)<input type="text" id="pOcc" maxlength="60" placeholder="e.g. Computer Science student"></label>
+    <div class="dactions"><button type="button" class="btn danger" id="pErase" hidden>Erase my data</button><button type="button" class="btn" id="pCancel" hidden>Cancel</button><button type="submit" class="btn primary">Save</button></div>
+  </form>
+</dialog>
+
+<dialog id="taskDlg" aria-labelledby="tdTitle">
+  <form id="taskForm">
+    <h2 id="tdTitle">New task</h2>
+    <input type="hidden" id="tId">
+    <label class="field" for="tName">Title<input type="text" id="tName" required maxlength="120" placeholder="What needs to be done?"></label>
+    <label class="field" for="tNotes">Notes (optional)<textarea id="tNotes" rows="3" maxlength="500"></textarea></label>
+    <div class="row2">
+      <label class="field" for="tDate">Day<input type="date" id="tDate" required></label>
+      <label class="field" for="tTime">Time (optional)<input type="time" id="tTime"></label>
+    </div>
+    <div class="row2">
+      <label class="field" for="tCat">Category<select id="tCat"></select></label>
+      <label class="field" for="tPri">Priority<select id="tPri"><option>High</option><option selected>Medium</option><option>Low</option></select></label>
+    </div>
+    <div class="dactions"><button type="button" class="btn" id="tCancel">Cancel</button><button type="submit" class="btn primary">Save task</button></div>
+  </form>
+</dialog>
+
+<dialog id="catDlg" aria-labelledby="cdTitle">
+  <div class="dbody">
+    <h2 id="cdTitle">Edit categories</h2>
+    <p class="sub">Rename a category by editing its name. Deleting one keeps its tasks as "Uncategorized".</p>
+    <div id="catList" style="display:grid;gap:8px"></div>
+    <div class="catrow">
+      <label class="sr-only" for="newCat">New category name</label>
+      <input type="text" id="newCat" maxlength="40" placeholder="New category name">
+      <button type="button" class="btn primary" id="addCat">Add</button>
+    </div>
+    <div class="dactions"><button type="button" class="btn" id="catDone">Done</button></div>
+  </div>
+</dialog>
+
+<script>
+// ====== SETUP: paste your own Supabase values here (Project Settings -> API) ======
+var SUPABASE_URL='https://rfvorygybdjsszaaqblq.supabase.co';
+var SUPABASE_ANON_KEY='sb_publishable_LTlyknKjgz2q9cUOWT4TmA_3ZbwBx37 ';
+// ===================================================================================
+(function(){
+var DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var PRI={High:0,Medium:1,Low:2};
+var $=function(s){return document.querySelector(s)};
+var filters={cat:'all',pri:'all',status:'all'};
+
+function pad(n){return String(n).padStart(2,'0')}
+function iso(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function parse(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
+function addDays(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x}
+function startOfWeek(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-x.getDay());return x}
+function short(d){return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}
+function fmtTime(t){if(!t)return '';var h=+t.slice(0,2),m=t.slice(3);return ((h%12)||12)+':'+m+' '+(h<12?'AM':'PM')}
+function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML}
+function uid(){return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g,function(c){return (c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)})}
+
+var weekStart=startOfWeek(new Date());
+var state={profile:null,categories:[],tasks:[]};
+
+var DEFAULT_CATS=['University','Assignments & Exams','ACM','AIQU','Projects','Personal'];
+var TITLES=['Eng.','Dr.','Prof.','Mr.','Ms.','Mrs.','Mx.'];
+var configured=SUPABASE_URL.indexOf('PASTE')<0&&SUPABASE_ANON_KEY.indexOf('PASTE')<0;
+var sb=configured?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+var user=null,loaded=false,synced={tasks:{},cats:[],profile:'null'},chain=Promise.resolve();
+function setStatus(m,bad){var e=$('#status');e.textContent=m;e.style.color=bad?'#7F1F3B':''}
+function rowOf(t){return {id:t.id,user_id:user.id,title:t.title,notes:t.notes||'',date:t.date,time:t.time||'',category:t.category||'',priority:t.priority,done:!!t.done}}
+function chk(r){if(r&&r.error)throw r.error;return r}
+
+async function loadAll(){
+  var r=await Promise.all([sb.from('profiles').select('title,name,occupation').maybeSingle(),sb.from('categories').select('name').order('position'),sb.from('tasks').select('*')]);
+  r.forEach(chk);
+  var tasks=r[2].data.map(function(x){return {id:x.id,title:x.title,notes:x.notes,date:x.date,time:x.time,category:x.category,priority:x.priority,done:x.done}});
+  var cats=r[1].data.map(function(x){return x.name});
+  var prof=r[0].data?{title:r[0].data.title,name:r[0].data.name,occupation:r[0].data.occupation||''}:null;
+  var fresh=!prof&&!cats.length&&!tasks.length;
+  state={profile:prof,categories:fresh?DEFAULT_CATS.slice():cats,tasks:tasks};
+  synced={tasks:{},cats:cats.slice(),profile:JSON.stringify(prof)};
+  tasks.forEach(function(t){synced.tasks[t.id]=JSON.stringify(rowOf(t))});
+  loaded=true;
+}
+
+// Sends only what changed since the last successful save to your Supabase database
+async function doSave(){
+  if(!user||!loaded)return;
+  var cur={},tasks=state.tasks.slice(),cats=state.categories.slice(),prof=state.profile;
+  tasks.forEach(function(t){cur[t.id]=JSON.stringify(rowOf(t))});
+  var up=tasks.filter(function(t){return synced.tasks[t.id]!==cur[t.id]}).map(rowOf);
+  var del=Object.keys(synced.tasks).filter(function(id){return !(id in cur)});
+  if(del.length)chk(await sb.from('tasks').delete().in('id',del));
+  if(up.length)chk(await sb.from('tasks').upsert(up));
+  if(JSON.stringify(cats)!==JSON.stringify(synced.cats)){
+    var gone=synced.cats.filter(function(c){return cats.indexOf(c)<0});
+    if(gone.length)chk(await sb.from('categories').delete().in('name',gone));
+    if(cats.length)chk(await sb.from('categories').upsert(cats.map(function(n,i){return {user_id:user.id,name:n,position:i}}),{onConflict:'user_id,name'}));
+  }
+  if(prof&&JSON.stringify(prof)!==synced.profile)chk(await sb.from('profiles').upsert({user_id:user.id,title:prof.title,name:prof.name,occupation:prof.occupation||''}));
+  synced={tasks:cur,cats:cats,profile:JSON.stringify(prof)};
+  setStatus('Saved to your account ('+user.email+')');
+}
+function save(){
+  chain=chain.then(doSave).catch(function(e){setStatus('Could not save: '+((e&&e.message)||'check your connection'),true)});
+  return chain;
+}
+
+/* Sign in / sign up */
+var authMode='in';
+function setAuthMsg(m,bad){var e=$('#aMsg');e.textContent=m;e.style.color=bad?'#7F1F3B':'#444'}
+function showAuth(){
+  user=null;loaded=false;state={profile:null,categories:[],tasks:[]};
+  $('#app').hidden=true;$('#authView').hidden=false;
+}
+async function startApp(u){
+  user=u;loaded=false;$('#authView').hidden=true;$('#app').hidden=false;setStatus('Loading your planner…');
+  try{await loadAll();setStatus('Signed in as '+u.email)}
+  catch(e){setStatus('Could not load your data ('+((e&&e.message)||'network error')+'). Refresh to try again.',true);state={profile:null,categories:[],tasks:[]}}
+  weekStart=startOfWeek(new Date());fillCats();render();applyProfile();
+  if(loaded&&!state.profile)openProfile();
+}
+$('#aToggle').addEventListener('click',function(){
+  authMode=authMode==='in'?'up':'in';setAuthMsg('');
+  $('#aSubmit').textContent=authMode==='in'?'Sign in':'Create account';
+  $('#aToggle').textContent=authMode==='in'?'Create a new account':'I already have an account';
+  $('#aPass').setAttribute('autocomplete',authMode==='in'?'current-password':'new-password');
+});
+$('#authForm').addEventListener('submit',async function(e){
+  e.preventDefault();
+  if(!configured){setAuthMsg('Setup needed: paste your Supabase URL and key at the top of the script.',true);return}
+  var email=$('#aEmail').value.trim(),pw=$('#aPass').value;
+  setAuthMsg(authMode==='in'?'Signing in…':'Creating account…');
+  var r=authMode==='in'?await sb.auth.signInWithPassword({email:email,password:pw}):await sb.auth.signUp({email:email,password:pw});
+  if(r.error){setAuthMsg(r.error.message,true);return}
+  if(!r.data.session){setAuthMsg('Account created. Check your email to confirm it, then sign in.');return}
+  $('#authForm').reset();setAuthMsg('');startApp(r.data.session.user);
+});
+$('#signOut').addEventListener('click',async function(){
+  await chain;if(sb)await sb.auth.signOut();showAuth();
+});
+
+function displayName(){var p=state.profile;return p?(p.title?p.title+' ':'')+p.name:''}
+function applyProfile(){
+  var n=displayName();
+  $('#appTitle').textContent=n?n+"'s Weekly Planner":'Weekly Planner';
+  $('#welcome').textContent=n?'Welcome back, '+n+'.':'Welcome.';
+  var o=state.profile&&state.profile.occupation;$('#occLine').textContent=o||'';$('#occLine').hidden=!o;
+  document.title=$('#appTitle').textContent;
+}
+function toggleCustom(){$('#pCustomWrap').hidden=$('#pTitle').value!=='__other'}
+function openProfile(){
+  var p=state.profile,t=p?p.title:null,known=t!==null&&(t===''||TITLES.indexOf(t)>-1);
+  $('#pName').value=p?p.name:'';
+  $('#pOcc').value=p?(p.occupation||''):'';
+  $('#pTitle').value=t===null?'':known?(t===''?'__none':t):'__other';
+  $('#pCustom').value=(t===null||known)?'':t;
+  toggleCustom();
+  $('#pCancel').hidden=!p;$('#pErase').hidden=!p;
+  $('#profDlg').showModal();$('#pName').focus();
+}
+
+function matches(t){
+  if(filters.cat!=='all'&&t.category!==filters.cat)return false;
+  if(filters.pri!=='all'&&t.priority!==filters.pri)return false;
+  if(filters.status==='open'&&t.done)return false;
+  if(filters.status==='done'&&!t.done)return false;
+  return true;
+}
+function cmp(a,b){
+  if(a.done!==b.done)return a.done?1:-1;
+  if(a.time!==b.time){if(!a.time)return 1;if(!b.time)return -1;return a.time<b.time?-1:1}
+  return PRI[a.priority]-PRI[b.priority];
+}
+function focusCmp(a,b){
+  if(PRI[a.priority]!==PRI[b.priority])return PRI[a.priority]-PRI[b.priority];
+  if(a.time!==b.time){if(!a.time)return 1;if(!b.time)return -1;return a.time<b.time?-1:1}
+  return 0;
+}
+
+function taskHTML(t,compact){
+  var meta='<span class="badge '+t.priority+'">'+t.priority+' priority</span>'
+    +'<span class="chip">'+esc(t.category||'Uncategorized')+'</span>'
+    +(t.time?'<span class="chip">'+fmtTime(t.time)+'</span>':'')
+    ;
+  var h='<article class="task '+t.priority+(t.done?' done':'')+'"><div class="t-top">'
+    +'<input type="checkbox" data-act="toggle" data-id="'+t.id+'" '+(t.done?'checked ':'')+'aria-label="Mark complete: '+esc(t.title).replace(/"/g,'&quot;')+'">'
+    +'<div><div class="t-title">'+esc(t.title)+'</div>'+(t.notes&&!compact?'<div class="t-notes">'+esc(t.notes)+'</div>':'')
+    +'<div class="meta">'+meta+'</div></div></div>';
+  if(!compact){
+    var ws=startOfWeek(parse(t.date)),opts='';
+    for(var i=0;i<7;i++){var d=addDays(ws,i),v=iso(d);opts+='<option value="'+v+'"'+(v===t.date?' selected':'')+'>'+DAYS[i].slice(0,3)+' '+short(d)+'</option>'}
+    h+='<div class="t-act"><button class="btn small" type="button" data-act="edit" data-id="'+t.id+'">Edit</button>'
+      +'<button class="btn small danger" type="button" data-act="delete" data-id="'+t.id+'">Delete</button>'
+      +'<label class="sr-only" for="mv-'+t.id+'">Move task to another day</label>'
+      +'<select id="mv-'+t.id+'" data-act="move" data-id="'+t.id+'">'+opts+'</select></div>';
+  }
+  return h+'</article>';
+}
+
+function render(){
+  var now=new Date(),todayKey=iso(now);
+  $('#todayLine').textContent=now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  var days=[0,1,2,3,4,5,6].map(function(i){return addDays(weekStart,i)});
+  $('#weekLabel').textContent=short(days[0])+' – '+short(days[6])+' '+days[6].getFullYear();
+
+  var keys=days.map(iso);
+  var wk=state.tasks.filter(function(t){return keys.indexOf(t.date)>-1});
+  var done=wk.filter(function(t){return t.done}).length,total=wk.length,left=total-done;
+  var pct=total?Math.round(done/total*100):0;
+  $('#sTotal').textContent=total;$('#sDone').textContent=done;$('#sLeft').textContent=left;
+  $('#pPct').textContent=pct+'%';$('#pFill').style.width=pct+'%';$('#pBar').setAttribute('aria-valuenow',pct);
+  $('#encourage').textContent=!total?'A fresh week. Add your first task to get started.'
+    :pct===100?'Everything is done this week. Well deserved rest.'
+    :pct>=50?'Great momentum. Keep going, you are more than halfway there.'
+    :'One task at a time. You have got this.';
+
+  var tt=state.tasks.filter(function(t){return t.date===todayKey});
+  var open=tt.filter(function(t){return !t.done}).sort(focusCmp);
+  $('#focus').innerHTML=open.length?open.map(function(t){return taskHTML(t,true)}).join('')
+    :'<div class="empty">'+(tt.length?'You are all caught up for today. Nicely done.':'Nothing scheduled for today. Add a task to plan your day.')+'</div>';
+
+  var anyFilter=filters.cat!=='all'||filters.pri!=='all'||filters.status!=='all';
+  $('#board').innerHTML=days.map(function(d,i){
+    var key=keys[i],list=state.tasks.filter(function(t){return t.date===key&&matches(t)}).sort(cmp);
+    var isT=key===todayKey;
+    return '<section class="day'+(isT?' today':'')+'" aria-labelledby="h-'+key+'"><div class="day-h"><div><h3 id="h-'+key+'">'+DAYS[i]+'</h3><p>'+short(d)+'</p></div>'+(isT?'<span class="today-tag">Today</span>':'')+'</div>'
+      +'<div class="list">'+(list.length?list.map(function(t){return taskHTML(t)}).join(''):'<div class="empty">'+(anyFilter?'No matching tasks.':'Nothing planned yet.')+'</div>')+'</div>'
+      +'<button class="add" type="button" data-act="add" data-date="'+key+'">+ Add task</button></section>';
+  }).join('');
+
+}
+
+function fillCats(){
+  var fc=$('#fCat'),cur=filters.cat;
+  fc.innerHTML='<option value="all">All categories</option>'+state.categories.map(function(c){return '<option value="'+esc(c).replace(/"/g,'&quot;')+'">'+esc(c)+'</option>'}).join('');
+  if(state.categories.indexOf(cur)<0){cur='all';filters.cat='all'}
+  fc.value=cur;
+}
+function fillTaskCats(sel){
+  var c=$('#tCat');
+  c.innerHTML=state.categories.map(function(x){return '<option value="'+esc(x).replace(/"/g,'&quot;')+'">'+esc(x)+'</option>'}).join('')+'<option value="">Uncategorized</option>';
+  c.value=sel!=null?sel:(state.categories[0]||'');
+}
+
+/* Task dialog */
+function openTask(task,date){
+  $('#tdTitle').textContent=task?'Edit task':'New task';
+  $('#tId').value=task?task.id:'';
+  $('#tName').value=task?task.title:'';
+  $('#tNotes').value=task?task.notes:'';
+  $('#tDate').value=task?task.date:(date||iso(new Date()));
+  $('#tTime').value=task?task.time:'';
+  $('#tPri').value=task?task.priority:'Medium';
+  fillTaskCats(task?task.category:null);
+  $('#taskDlg').showModal();
+  $('#tName').focus();
+}
+$('#taskForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var title=$('#tName').value.trim();
+  if(!title){$('#tName').focus();return}
+  var id=$('#tId').value;
+  var data={title:title,notes:$('#tNotes').value.trim(),date:$('#tDate').value,time:$('#tTime').value,category:$('#tCat').value,priority:$('#tPri').value};
+  if(id){
+    var t=state.tasks.filter(function(x){return x.id===id})[0];
+    if(t){Object.assign(t,data);t.sample=false}
+  }else{
+    state.tasks.push(Object.assign({id:uid(),done:false,sample:false},data));
+  }
+  weekStart=startOfWeek(parse(data.date));
+  save();$('#taskDlg').close();render();
+});
+$('#tCancel').addEventListener('click',function(){$('#taskDlg').close()});
+
+/* Category dialog */
+function renderCats(){
+  $('#catList').innerHTML=state.categories.map(function(c,i){
+    return '<div class="catrow"><label class="sr-only" for="cn'+i+'">Category name</label><input type="text" id="cn'+i+'" value="'+esc(c).replace(/"/g,'&quot;')+'" data-idx="'+i+'" maxlength="40">'
+      +'<button type="button" class="btn danger" data-delcat="'+i+'" aria-label="Delete category '+esc(c).replace(/"/g,'&quot;')+'">Delete</button></div>';
+  }).join('');
+}
+function exists(name,skip){return state.categories.some(function(c,i){return i!==skip&&c.toLowerCase()===name.toLowerCase()})}
+$('#manageCats').addEventListener('click',function(){renderCats();$('#catDlg').showModal()});
+$('#catDone').addEventListener('click',function(){$('#catDlg').close()});
+$('#catList').addEventListener('change',function(e){
+  var i=e.target.getAttribute('data-idx');if(i===null)return;i=+i;
+  var old=state.categories[i],nv=e.target.value.trim();
+  if(!nv||exists(nv,i)){e.target.value=old;return}
+  state.tasks.forEach(function(t){if(t.category===old)t.category=nv});
+  if(filters.cat===old)filters.cat=nv;
+  state.categories[i]=nv;save();fillCats();render();
+});
+$('#catList').addEventListener('click',function(e){
+  var b=e.target.closest('[data-delcat]');if(!b)return;
+  var i=+b.getAttribute('data-delcat'),name=state.categories[i];
+  if(!confirm('Delete the category "'+name+'"? Its tasks will become Uncategorized.'))return;
+  state.tasks.forEach(function(t){if(t.category===name)t.category=''});
+  state.categories.splice(i,1);save();renderCats();fillCats();render();
+});
+function addCat(){
+  var v=$('#newCat').value.trim();
+  if(!v||exists(v,-1)){$('#newCat').focus();return}
+  state.categories.push(v);$('#newCat').value='';save();renderCats();fillCats();render();
+}
+$('#addCat').addEventListener('click',addCat);
+$('#newCat').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addCat()}});
+
+/* Board interactions */
+document.addEventListener('click',function(e){
+  var b=e.target.closest('button[data-act]');if(!b)return;
+  var act=b.getAttribute('data-act'),id=b.getAttribute('data-id');
+  var t=state.tasks.filter(function(x){return x.id===id})[0];
+  if(act==='add')openTask(null,b.getAttribute('data-date'));
+  else if(act==='edit'&&t)openTask(t);
+  else if(act==='delete'&&t){
+    if(confirm('Delete "'+t.title+'"? This cannot be undone.')){
+      state.tasks=state.tasks.filter(function(x){return x.id!==id});save();render();
+    }
+  }
+});
+document.addEventListener('change',function(e){
+  var el=e.target,act=el.getAttribute&&el.getAttribute('data-act');if(!act)return;
+  var id=el.getAttribute('data-id');
+  var t=state.tasks.filter(function(x){return x.id===id})[0];if(!t)return;
+  if(act==='toggle')t.done=el.checked;
+  else if(act==='move')t.date=el.value;
+  save();render();
+});
+
+/* Header, navigation, filters */
+$('#newTask').addEventListener('click',function(){
+  var td=new Date(),inView=iso(startOfWeek(td))===iso(weekStart);
+  openTask(null,inView?iso(td):iso(weekStart));
+});
+$('#prevW').addEventListener('click',function(){weekStart=addDays(weekStart,-7);render()});
+$('#nextW').addEventListener('click',function(){weekStart=addDays(weekStart,7);render()});
+$('#thisW').addEventListener('click',function(){weekStart=startOfWeek(new Date());render()});
+$('#fCat').addEventListener('change',function(e){filters.cat=e.target.value;render()});
+$('#fPri').addEventListener('change',function(e){filters.pri=e.target.value;render()});
+$('#fStat').addEventListener('change',function(e){filters.status=e.target.value;render()});
+$('#resetF').addEventListener('click',function(){
+  filters={cat:'all',pri:'all',status:'all'};
+  $('#fCat').value='all';$('#fPri').value='all';$('#fStat').value='all';render();
+});
+$('#pTitle').addEventListener('change',toggleCustom);
+$('#editProfile').addEventListener('click',openProfile);
+$('#pCancel').addEventListener('click',function(){$('#profDlg').close()});
+$('#profDlg').addEventListener('cancel',function(e){if(!state.profile)e.preventDefault()});
+$('#profForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var name=$('#pName').value.trim();
+  if(!name){$('#pName').focus();return}
+  var sel=$('#pTitle').value,custom=$('#pCustom').value.trim();
+  if(!sel){$('#pTitle').focus();return}
+  if(sel==='__other'&&!custom){$('#pCustom').focus();return}
+  var title=sel==='__other'?custom:sel==='__none'?'':sel;
+  state.profile={title:title,name:name,occupation:$('#pOcc').value.trim()};
+  save();applyProfile();$('#profDlg').close();
+});
+$('#pErase').addEventListener('click',function(){
+  if(!confirm('Erase your name and ALL your tasks from your account? This cannot be undone.'))return;
+  state={profile:null,categories:DEFAULT_CATS.slice(),tasks:[]};
+  save();fillCats();render();applyProfile();$('#profDlg').close();openProfile();
+});
+if(!configured){showAuth();setAuthMsg('Setup needed: paste your Supabase URL and key at the top of the script.',true)}
+else sb.auth.getSession().then(function(r){if(r.data.session)startApp(r.data.session.user);else showAuth()});
+})();
+</script>
+</body>
+</html>
